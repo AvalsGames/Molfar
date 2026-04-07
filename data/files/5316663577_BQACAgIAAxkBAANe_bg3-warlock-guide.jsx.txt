@@ -1,0 +1,362 @@
+import { useState } from "react";
+
+const subclasses = [
+  {
+    id: "archfey", name: "Архіфея", nameEn: "The Archfey", origin: "Ванільна",
+    icon: "🌿", color: "#a8e6cf", accent: "#2ecc71",
+    patron: "Могутня фейська істота з Надприродних земель",
+    style: "Контроль / Обман / Підтримка",
+    playstyle: "Чарівник і маніпулятор. Fey Presence — AoE страх/зачарування, Misty Escape — телепортація як реакція на пошкодження. Найбільше RP-потенціалу з ванільних.",
+    strengths: ["Fey Presence — AoE страх/зачарування", "Misty Escape — зникнення як реакція", "Beguiling Defenses — імунітет до зачарування", "Сильний у roleplay"],
+    weaknesses: ["Найслабший DPS серед ванільних", "Вороги часто мають імунітет до CC", "Складніший за Нечистого"],
+    bestFor: "Любителі контролю натовпу та roleplay",
+    difficulty: 3, damage: 2, support: 4, control: 5, survival: 2, vanilla: true, tag: "RP / CC"
+  },
+  {
+    id: "fiend", name: "Нечистий", nameEn: "The Fiend", origin: "Ванільна",
+    icon: "🔥", color: "#ff6b6b", accent: "#e74c3c",
+    patron: "Лорд пекла або демонічний повелитель (Асмодей, Ґрацзт тощо)",
+    style: "Пошкодження / Виживання / Агресія",
+    playstyle: "Найсильніший ванільний підклас. Dark One's Blessing — тимчасові HP при кожному вбивстві, Dark One's Own Luck — бонус до перевірок. Fireball у списку. Ідеальний для Honor Mode.",
+    strengths: ["Dark One's Blessing — тимч. HP при вбивстві", "Dark One's Own Luck — бонус до кидків", "Fireball / Wall of Fire у списку", "Найкращий для Honor Mode"],
+    weaknesses: ["Менш унікальний ігровий стиль", "Слабший контроль натовпу", "Менш цікавий для досвідчених гравців"],
+    bestFor: "Всі, особливо новачки та соло Honor Mode",
+    difficulty: 1, damage: 5, support: 1, control: 2, survival: 5, vanilla: true, tag: "Meta / Newbie-friendly"
+  },
+  {
+    id: "goo", name: "Величний Древній", nameEn: "The Great Old One", origin: "Ванільна",
+    icon: "🐙", color: "#c3a6ff", accent: "#9b59b6",
+    patron: "Незбагненна космічна сутність за межами розуміння",
+    style: "Психіка / Утиліти / Roleplay",
+    playstyle: "Awakened Mind — телепатія з будь-якою істотою. Entropic Ward — відбивання атак. Найбільше унікальних діалогів і взаємодій у світі BG3. Для тих, хто хоче занурення у лор.",
+    strengths: ["Awakened Mind — телепатія", "Entropic Ward — відбивання атак", "Унікальні діалоги по всій грі", "Thought Shield — опір психічним пошкодженням"],
+    weaknesses: ["Найслабший DPS з ванільних", "Деякі здібності слабші ніж у tabletop", "Потребує креативного підходу"],
+    bestFor: "Максимум roleplay та унікальних діалогів",
+    difficulty: 3, damage: 2, support: 3, control: 3, survival: 2, vanilla: true, tag: "RP / Utility"
+  },
+  {
+    id: "hexblade", name: "Клятолез", nameEn: "The Hexblade", origin: "Мод",
+    icon: "⚔️", color: "#f0c27f", accent: "#e67e22",
+    patron: "Загадкова сила зі Сутінкових Земель, пов'язана зі зброєю та смертю",
+    style: "Ближній бій / Прокляття / Гібрид",
+    playstyle: "Варлок-воїн. Hex Warrior — ХАР замість Сили/Спритності для атак. Найкращий підклас для Pact of the Blade збірок. Hexblade's Curse підсилює атаки і дає HP при вбивстві цілі.",
+    strengths: ["Hex Warrior — ХАР до атак зброєю", "Hexblade's Curse — бонус атаки + HP при вбивстві", "Armor of Hexes — відбиває атаки при прокльоні", "Ідеальний для melee Warlock"],
+    weaknesses: ["Тільки мод — можливі баги", "Менш ефективний у дальньому бою", "Потребує розуміння Pact of the Blade"],
+    bestFor: "Pact of the Blade / Melee Warlock",
+    difficulty: 3, damage: 4, support: 1, control: 2, survival: 4, vanilla: false, tag: "Melee / Pact of Blade"
+  },
+  {
+    id: "ethereal", name: "The Ethereal", nameEn: "The Ethereal", origin: "Мод",
+    icon: "🌀", color: "#b0c4de", accent: "#5b8cda",
+    patron: "Ефірний План сам по собі — безмежний таємничий вимір",
+    style: "Переміщення / Контроль простору / Утиліти",
+    playstyle: "Phase Shift — міняєш місцями ворогів, союзників і об'єкти. Циклони та ефірні істоти з'являються на полі бою. Натхненний Gojo з JJK. Унікальна тактична механіка.",
+    strengths: ["Phase Shift — міняти позиції будь-кого", "Тактичний контроль поля бою", "Виклик циклонів та ефірних істот", "Повністю унікальна механіка"],
+    weaknesses: ["Мод новий (березень 2026)", "Потребує тактичного мислення", "Слабший прямий DPS"],
+    bestFor: "Тактичні гравці що люблять маніпуляції з позицією",
+    difficulty: 4, damage: 2, support: 3, control: 5, survival: 2, vanilla: false, tag: "Utility / Tactical CC"
+  },
+  {
+    id: "dreadoverlord", name: "The Dread Overlord", nameEn: "The Dread Overlord", origin: "Мод",
+    icon: "💀", color: "#b8b8b8", accent: "#636363",
+    patron: "Ти сам є покровителем — темний лорд смерті й жаху",
+    style: "Некромантія / Страх / Темний Лорд",
+    playstyle: "Ти НЕ служиш покровителю — ти і є темним повелителем. Аура жаху, армія нежиті, сюжетні Profane Blessings що змінюються від твоїх дій у грі. Найкраща інтеграція в BG3.",
+    strengths: ["Постійна аура жаху навколо тебе", "Армія нежиті та некротичні пошкодження", "Profane Blessings — сюжетні бонуси", "Villain fantasy #1"],
+    weaknesses: ["Нішева концепція", "Може сильно переважати в кооп", "Деякі фічі прив'язані до регіонів гри"],
+    bestFor: "Evil playthrough / Темний Лорд / Сюжетне занурення",
+    difficulty: 4, damage: 3, support: 1, control: 5, survival: 3, vanilla: false, tag: "Evil / Necro / Control"
+  },
+  {
+    id: "celestial", name: "The Celestial", nameEn: "The Celestial", origin: "Мод",
+    icon: "✨", color: "#ffd6e7", accent: "#e91e8c",
+    patron: "Небесна істота — ангел або фенікс (з Xanathar's Guide to Everything)",
+    style: "Зцілення / Радіант / Підтримка",
+    playstyle: "Варлок-лікар з офіційного 5e. Healing Light — зцілення бонусною дією з зарядів. Radiant Soul — ХАР до вогняних і радіантних закляттів. Список включає Cure Wounds і Revivify.",
+    strengths: ["Healing Light — зцілення бонусною дією", "Radiant Soul — ХАР до вогн./радіант. пошк.", "Cure Wounds, Revivify у списку", "Єдиний повноцінний варлок-хілер"],
+    weaknesses: ["Відмовляєшся від частини DPS", "Залежить від кооп для потенціалу", "Обмеження BG3 vs tabletop"],
+    bestFor: "Кооперативна гра, гібрид саппорт/дамагер",
+    difficulty: 2, damage: 2, support: 5, control: 2, survival: 3, vanilla: false, tag: "Support / Healer"
+  },
+  {
+    id: "ravenqueen", name: "The Raven Queen", nameEn: "The Raven Queen", origin: "Мод",
+    icon: "🦅", color: "#9d7fc9", accent: "#6c3483",
+    patron: "Королева Воронів — богиня смерті та долі зі Сутінкових Земель",
+    style: "Смерть / Тінь / Антинежить",
+    playstyle: "Sentinel Raven — розвідка і дії очима ворона. Shadow Step — тіньове переміщення. Знищення нежиті як основна тема. Найкращий лор та атмосфера серед усіх мод-підкласів.",
+    strengths: ["Sentinel Raven — розвідка через ворона", "Shadow Step — тіньове пересування", "Антинежить здібності", "Найкращий лор серед модів"],
+    weaknesses: ["Нішевий проти нежиті", "Слабший у звичайних зустрічах", "Залежить від якості версії мода"],
+    bestFor: "Dark Urge, атмосферна гра, боротьба з нежиттю",
+    difficulty: 3, damage: 3, support: 2, control: 4, survival: 3, vanilla: false, tag: "Lore / Shadow"
+  },
+  {
+    id: "remembrance", name: "The Remembrance", nameEn: "The Remembrance", origin: "Мод",
+    icon: "📜", color: "#d4b483", accent: "#c8952a",
+    patron: "Невідомий дух що пообіцяв силу в найтемніший момент",
+    style: "Гібрид Барда і Рога / Утиліти",
+    playstyle: "Експериментальний підклас — суміш здібностей Барда і Рога. Dark Urge за замовчуванням отримує цей клас зі стартовим спорядженням. Простий у механіках, зроблений як тест.",
+    strengths: ["Суміш Барда + Рога здібностей", "Dark Urge стартове спорядження", "Простий у вивченні", "Нестандартний для мультикласу"],
+    weaknesses: ["Зроблено як тест модмейкера", "Менш оптимізований", "Немає глибокої тематики"],
+    bestFor: "Нестандартні збірки / Dark Urge / Тестування",
+    difficulty: 1, damage: 3, support: 2, control: 2, survival: 3, vanilla: false, tag: "Hybrid / Experimental"
+  },
+  {
+    id: "lastsun", name: "The Last Sun", nameEn: "The Last Sun", origin: "Мод",
+    icon: "☀️", color: "#ffe066", accent: "#f39c12",
+    patron: "Сонце що згасає — натхнення Warriors of Sunlight з Dark Souls",
+    style: "Радіант / Підтримка / Бластер",
+    playstyle: "Замість Eldritch Blast — Sunlight Spear (2d6 радіант) з кастомними VFX. Підтримуєш союзників зціленням, одночасно наносиш пошкодження. Jolly Cooperation — реактивні здібності за командну гру.",
+    strengths: ["Sunlight Spear — кастомна заміна EB", "Зцілення союзників під час атак", "Gorgeous кастомні VFX", "Повна прогресія 1-20"],
+    weaknesses: ["Level 20 мод потрібен для повного потенціалу", "Рівні 14+ у розробці (WIP)", "Немає темної / некротичної тематики"],
+    bestFor: "Командна гра / Радіантний саппорт / Dark Souls фанати",
+    difficulty: 2, damage: 3, support: 4, control: 2, survival: 3, vanilla: false, tag: "Radiant / Support Blaster"
+  },
+  {
+    id: "fathomless", name: "The Fathomless", nameEn: "The Fathomless", origin: "Мод",
+    icon: "🌊", color: "#4ec9b0", accent: "#1abc9c",
+    patron: "Глибоководна сутність — морський бог або абісальний жах",
+    style: "Морська магія / Призов / Контроль",
+    playstyle: "Найпопулярніший мод-підклас (~685 ендорсів). Spectral Tentacle — призов щупальця що атакує і переміщується бонусною дією. Guardian Coil — захисна реакція. Морська тематика закляттів.",
+    strengths: ["Spectral Tentacle — постійний компаньйон", "Guardian Coil — захисна реакція", "Evard's Black Tentacles на 10 рівні", "Найбільш polished мод-підклас"],
+    weaknesses: ["Потребує Veenab Library", "Баги з порядком завантаження", "Консольна версія у розробці"],
+    bestFor: "Морська / піратська фантазія, компаньйон-стиль",
+    difficulty: 2, damage: 3, support: 2, control: 4, survival: 3, vanilla: false, tag: "Summoner / Ocean"
+  },
+  {
+    id: "accursed", name: "The Accursed", nameEn: "The Accursed", origin: "Мод",
+    icon: "🩸", color: "#e57373", accent: "#c0392b",
+    patron: "Дух заздрості що зрісся з тобою в одну істоту",
+    style: "Дебафи / Прокляття / Знищення",
+    playstyle: "11 різних прокльонів для знесилення і знищення ворогів. Власний ресурс — Cursed Points (поновлюється на короткому відпочинку). Shadow Grasp — притягуєш ворогів на 13м.",
+    strengths: ["11 унікальних прокльонів для вибору", "Cursed Points — окремий ресурс (short rest)", "Shadow Grasp — притяжіння ворогів", "Фокус на дебафах, не тільки DPS"],
+    weaknesses: ["Новий мод (грудень 2025) — баланс тестується", "Потребує розуміння системи прокльонів", "Менш ефективний проти імунних ворогів"],
+    bestFor: "Гравці що люблять дебаф-фокус і прокляття",
+    difficulty: 3, damage: 3, support: 1, control: 5, survival: 2, vanilla: false, tag: "Debuff / Curses"
+  },
+  {
+    id: "venomblood", name: "Venomblood", nameEn: "Venomblood", origin: "Мод",
+    icon: "🐍", color: "#a8d5a2", accent: "#27ae60",
+    patron: "Отруйна сутність — змієподібний або абісальний демон",
+    style: "Отрута / Ближній бій / DoT",
+    playstyle: "Варлок-отрутник у ближньому бою. Накладаєш отруту через атаки зброєю та заклиняння. DoT (damage over time) як основна стратегія. Унікальна нішева melee-poison фантазія.",
+    strengths: ["Унікальна отруйна тематика", "Melee + отрута синергія", "DoT пошкодження", "Нестандартний стиль гри"],
+    weaknesses: ["Нова/маловідома реалізація", "Багато ворогів мають імунітет до отрути", "Слабший на Honor Mode"],
+    bestFor: "Нестандартні melee DoT збірки",
+    difficulty: 3, damage: 3, support: 1, control: 2, survival: 4, vanilla: false, tag: "Poison / Melee DoT"
+  },
+];
+
+const StatBar = ({ value, color }) => (
+  <div style={{ display: "flex", gap: "3px" }}>
+    {Array.from({ length: 5 }).map((_, i) => (
+      <div key={i} style={{
+        width: 13, height: 13, borderRadius: 3,
+        background: i < value ? color : "rgba(255,255,255,0.08)",
+        border: `1px solid ${i < value ? color : "rgba(255,255,255,0.12)"}`,
+        boxShadow: i < value ? `0 0 5px ${color}66` : "none"
+      }} />
+    ))}
+  </div>
+);
+
+const DiffLabel = ({ value }) => {
+  const labels = ["", "Легко", "Помірно", "Середнє", "Складно", "Хардкор"];
+  const colors = ["", "#2ecc71", "#f1c40f", "#e67e22", "#e74c3c", "#8e44ad"];
+  return <span style={{ color: colors[value], fontSize: 11, fontWeight: 600 }}>{labels[value]}</span>;
+};
+
+function SubBtn({ sc, selected, setSelected }) {
+  const active = selected.id === sc.id;
+  return (
+    <button onClick={() => setSelected(sc)} style={{
+      background: active ? `linear-gradient(135deg, ${sc.color}22, ${sc.accent}33)` : "rgba(255,255,255,0.03)",
+      border: `1px solid ${active ? sc.accent : "rgba(255,255,255,0.1)"}`,
+      borderRadius: 8, padding: "8px 4px", cursor: "pointer", textAlign: "center",
+      boxShadow: active ? `0 0 14px ${sc.accent}44` : "none", transition: "all 0.15s"
+    }}>
+      <div style={{ fontSize: 20, marginBottom: 3 }}>{sc.icon}</div>
+      <div style={{ fontSize: 10, color: active ? sc.color : "#9a8a6a", fontWeight: active ? 600 : 400, lineHeight: 1.3 }}>{sc.name}</div>
+    </button>
+  );
+}
+
+function DetailCard({ sc }) {
+  return (
+    <div style={{
+      background: `linear-gradient(135deg, ${sc.color}0a, ${sc.accent}0f)`,
+      border: `1px solid ${sc.accent}44`, borderRadius: 12, padding: "20px",
+      boxShadow: `0 0 40px ${sc.accent}22`
+    }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14, flexWrap: "wrap", marginBottom: 16 }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 10, flexShrink: 0,
+          background: `radial-gradient(circle, ${sc.color}33, ${sc.accent}22)`,
+          border: `2px solid ${sc.accent}66`,
+          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28,
+          boxShadow: `0 0 16px ${sc.accent}44`
+        }}>{sc.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <h2 style={{ margin: 0, fontSize: 20, color: sc.color, fontWeight: "normal" }}>{sc.name}</h2>
+            <span style={{
+              fontSize: 10, padding: "2px 7px", borderRadius: 20,
+              background: sc.vanilla ? "rgba(46,204,113,0.15)" : "rgba(180,140,60,0.15)",
+              border: `1px solid ${sc.vanilla ? "#2ecc7155" : "#b4973c55"}`,
+              color: sc.vanilla ? "#2ecc71" : "#b4973c", letterSpacing: 1, textTransform: "uppercase"
+            }}>{sc.vanilla ? "Ванільна" : "Мод"}</span>
+            <span style={{ fontSize: 10, padding: "2px 7px", borderRadius: 20, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#9a8a6a" }}>{sc.tag}</span>
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(232,223,200,0.45)", marginTop: 3 }}>{sc.nameEn}</div>
+        </div>
+      </div>
+
+      <div style={{ background: "rgba(0,0,0,0.3)", borderRadius: 7, padding: "8px 12px", marginBottom: 14, borderLeft: `3px solid ${sc.accent}66` }}>
+        <span style={{ fontSize: 10, color: "#b4973c", letterSpacing: 1, textTransform: "uppercase" }}>Покровитель · </span>
+        <span style={{ fontSize: 12, color: "rgba(232,223,200,0.7)" }}>{sc.patron}</span>
+      </div>
+
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: sc.accent, letterSpacing: 2, textTransform: "uppercase", marginBottom: 3 }}>Стиль гри</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: sc.color, marginBottom: 5 }}>{sc.style}</div>
+        <div style={{ fontSize: 13, color: "rgba(232,223,200,0.8)", lineHeight: 1.6 }}>{sc.playstyle}</div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 8, marginBottom: 16, background: "rgba(0,0,0,0.2)", borderRadius: 8, padding: 12 }}>
+        {[["Пошкодження", "damage"], ["Підтримка", "support"], ["Контроль", "control"], ["Виживання", "survival"]].map(([label, key]) => (
+          <div key={key}>
+            <div style={{ fontSize: 10, color: "rgba(232,223,200,0.45)", marginBottom: 3, letterSpacing: 1 }}>{label}</div>
+            <StatBar value={sc[key]} color={sc.accent} />
+          </div>
+        ))}
+        <div>
+          <div style={{ fontSize: 10, color: "rgba(232,223,200,0.45)", marginBottom: 3, letterSpacing: 1 }}>Складність</div>
+          <DiffLabel value={sc.difficulty} />
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+        <div style={{ background: "rgba(46,204,113,0.06)", borderRadius: 8, padding: 10, border: "1px solid rgba(46,204,113,0.15)" }}>
+          <div style={{ fontSize: 10, color: "#2ecc71", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>✓ Переваги</div>
+          {sc.strengths.map((s, i) => <div key={i} style={{ fontSize: 11, color: "rgba(232,223,200,0.8)", marginBottom: 4, lineHeight: 1.5 }}>· {s}</div>)}
+        </div>
+        <div style={{ background: "rgba(231,76,60,0.06)", borderRadius: 8, padding: 10, border: "1px solid rgba(231,76,60,0.15)" }}>
+          <div style={{ fontSize: 10, color: "#e74c3c", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6 }}>✗ Недоліки</div>
+          {sc.weaknesses.map((w, i) => <div key={i} style={{ fontSize: 11, color: "rgba(232,223,200,0.8)", marginBottom: 4, lineHeight: 1.5 }}>· {w}</div>)}
+        </div>
+      </div>
+
+      <div style={{ background: `linear-gradient(90deg, ${sc.accent}15, transparent)`, borderRadius: 7, padding: "8px 12px", border: `1px solid ${sc.accent}30` }}>
+        <span style={{ fontSize: 10, color: sc.accent, letterSpacing: 1, textTransform: "uppercase" }}>Ідеально для · </span>
+        <span style={{ fontSize: 12, color: "rgba(232,223,200,0.9)" }}>{sc.bestFor}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function WarlockGuide() {
+  const [selected, setSelected] = useState(subclasses[0]);
+  const [activeTab, setActiveTab] = useState("guide");
+  const vanilla = subclasses.filter(s => s.vanilla);
+  const mods = subclasses.filter(s => !s.vanilla);
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "radial-gradient(ellipse at top, #1a0a2e 0%, #0d0a1a 40%, #060510 100%)",
+      fontFamily: "'Palatino Linotype', 'Book Antiqua', Georgia, serif",
+      color: "#e8dfc8",
+    }}>
+      <div style={{
+        textAlign: "center", padding: "28px 20px 16px",
+        borderBottom: "1px solid rgba(180,140,60,0.25)",
+        background: "linear-gradient(180deg, rgba(80,30,120,0.3) 0%, transparent 100%)",
+      }}>
+        <div style={{ fontSize: 10, letterSpacing: 6, color: "#b4973c", textTransform: "uppercase", marginBottom: 4 }}>Baldur's Gate 3 · Повний Гайд</div>
+        <h1 style={{
+          margin: 0, fontSize: "clamp(20px, 4vw, 34px)",
+          background: "linear-gradient(135deg, #f0d060, #c8a020, #f0d060)",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          fontWeight: "normal", letterSpacing: 2
+        }}>Варлок — Підкласи та Покровителі</h1>
+        <p style={{ margin: "6px 0 0", color: "rgba(232,223,200,0.45)", fontSize: 12, letterSpacing: 1 }}>
+          3 ванільних · 9 модових · {subclasses.length} підкласів загалом
+        </p>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", gap: 8, padding: "16px 20px 0" }}>
+        {[{ id: "guide", label: "📖 Детальний гайд" }, { id: "table", label: "📊 Таблиця" }].map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+            background: activeTab === tab.id ? "rgba(180,140,60,0.2)" : "rgba(255,255,255,0.04)",
+            border: `1px solid ${activeTab === tab.id ? "#b4973c" : "rgba(255,255,255,0.1)"}`,
+            color: activeTab === tab.id ? "#f0d060" : "#a09070",
+            padding: "8px 20px", borderRadius: 6, cursor: "pointer", fontSize: 13, fontFamily: "inherit"
+          }}>{tab.label}</button>
+        ))}
+      </div>
+
+      {activeTab === "guide" && (
+        <div style={{ maxWidth: 1000, margin: "0 auto", padding: "16px" }}>
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: "#2ecc71", letterSpacing: 3, textTransform: "uppercase", marginBottom: 6, paddingLeft: 2 }}>■ Ванільні підкласи</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 6 }}>
+              {vanilla.map(sc => <SubBtn key={sc.id} sc={sc} selected={selected} setSelected={setSelected} />)}
+            </div>
+          </div>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 10, color: "#b4973c", letterSpacing: 3, textTransform: "uppercase", marginBottom: 6, paddingLeft: 2 }}>■ Модові підкласи</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(88px, 1fr))", gap: 6 }}>
+              {mods.map(sc => <SubBtn key={sc.id} sc={sc} selected={selected} setSelected={setSelected} />)}
+            </div>
+          </div>
+          <DetailCard sc={selected} />
+        </div>
+      )}
+
+      {activeTab === "table" && (
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "16px", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid rgba(180,140,60,0.4)" }}>
+                {["Підклас", "Тип", "Пошк.", "Підтр.", "Контр.", "Вижив.", "Склад.", "Ідеально для"].map(h => (
+                  <th key={h} style={{ padding: "10px 10px", textAlign: "left", color: "#b4973c", fontWeight: "normal", fontSize: 10, letterSpacing: 1, textTransform: "uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {subclasses.map((sc, i) => (
+                <tr key={sc.id}
+                  style={{ background: i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent", borderBottom: "1px solid rgba(255,255,255,0.05)", cursor: "pointer" }}
+                  onMouseEnter={e => e.currentTarget.style.background = `${sc.accent}18`}
+                  onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"}
+                  onClick={() => { setSelected(sc); setActiveTab("guide"); }}
+                >
+                  <td style={{ padding: "8px 10px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                      <span style={{ fontSize: 16 }}>{sc.icon}</span>
+                      <div>
+                        <div style={{ color: sc.color, fontWeight: 600, fontSize: 12 }}>{sc.name}</div>
+                        <div style={{ fontSize: 9, color: sc.vanilla ? "#2ecc71" : "#b4973c" }}>{sc.vanilla ? "ванільна" : "мод"}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style={{ padding: "8px 10px" }}>
+                    <span style={{ fontSize: 9, padding: "2px 5px", borderRadius: 3, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", color: "#9a8a6a" }}>{sc.tag}</span>
+                  </td>
+                  {["damage", "support", "control", "survival"].map(stat => (
+                    <td key={stat} style={{ padding: "8px 10px" }}><StatBar value={sc[stat]} color={sc.accent} /></td>
+                  ))}
+                  <td style={{ padding: "8px 10px" }}><DiffLabel value={sc.difficulty} /></td>
+                  <td style={{ padding: "8px 10px", color: "rgba(232,223,200,0.6)", fontSize: 11 }}>{sc.bestFor}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 14, padding: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 8 }}>
+            <span style={{ fontSize: 11, color: "rgba(232,223,200,0.5)" }}>Клацни на рядок → детальний гайд · Статистики відносні для порівняння</span>
+          </div>
+        </div>
+      )}
+      <div style={{ height: 32 }} />
+    </div>
+  );
+}
